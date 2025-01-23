@@ -1,119 +1,92 @@
 import { Router } from "express";
-// import expresSession from "express-session"
 import { userDao } from "../dao/user.dao.js";
-import { createHash,validatePassword } from "../utils/hash.password.js";
+import { createHash} from "../utils/hash.password.js";
+import {createToken,verifyToken} from "../utils/jwt.js";
+import { passportCall } from "../middlewares/passportCall.middelware.js";
+import {authorization} from "../middlewares/authotirization.middleware.js"
 import passport from "passport";
+
 
 
 
 const router= Router();
 
-router.post("/register",passport.authenticate("register"), async (req,res) => {
+router.post("/register",passportCall("register"), async (req,res) => {
     try {
-        // const userData = req.body
-        
-        // const findEmail =  await userDao.getByEmail(userData.email) 
-        // if(findEmail) return res.status(400).json({ status: "error", msg:"That User already exists"})
-
-        // const newUser = {...userData, password: createHash(userData.password)}
-        // const user = await userDao.create(newUser)
-
         res.status(201).json({ status: "success", payload: "Registered user" });
+
     } catch (error) {
 
-        res.status(500).json({status:"error",msg:"Internal server error"});
+        res.status(500).json({status:"Error",msg:"Internal server error"});
     }
 })
 
-router.post("/login",passport.authenticate("login"), async (req, res) => {
+router.post("/login",passportCall("login"), async (req, res) => {
     try {
-      req.session.user = {
-        first_name: req.user.first_name,
-        last_name: req.user.last_name,
-        email: req.user.email
-      }
 
-      // const { email, password } = req.body;
-      // const user = await userDao.getByEmail(email);
-      // const checkPasswrd = validatePassword(password,user)
-
-      // req.body.user = {
-      //   email,
-      //   role: "user"
-      // }
-      
-      // if(!user || !checkPasswrd) return res.status(401).json({status: "error", msg:"Email or Password isn't valid" });
-      
-      // console.log(req.body.user);
-      // console.log(user);
-      // // Guardamos la información del usuario en la session
-      // // req.sessionStore = {
-      // //   email,
-      // //   role: "user"
-      // // }
-    
-      // // console.log(req.sessionStore);
-      
-      res.status(200).json({status: "success", payload: req.session.user})
+        const token= createToken(req.user);
+        res.cookie("token", token,{ httpOnly:true });
+        res.status(200).json({ status: "success", payload: req.user, token })
       
     } catch (error) {
-      console.log(error);
-      res.status(500).json({ status: "Erro", msg: "Internal server error" });
+        console.log(error);
+        res.status(500).json({ status: "Error", msg: "Internal server error." });
     }
   })
 
-// router.post("/login", async (req,res) => {
-//     try {
-//         const {email,password} = req.body;
-//         const user = await userDao.getByEmail(email);
-//         // await req.session.user.email
-//         if(!user||user.password !== password ) return res.status(400).json({status:"error",msg:"Email or Password isn't valid"});
-//         //###revisar esta parte sesion####//
-//         console.log(req);
-        
-//          req.session={email:email}
-//         // req.session = {email:req.body.email}
-//         // console.log(req.session);
-        
-//         res.status(200).json({ status: "success", payload: user});
-//     } catch (error) {
-//         console.log(error);
-        
-//         res.status(500).json({status:"error",msg:"Internal server error"});
-//     }
-// })
 
 router.get("/profile",async (req,res) => {
     try {
-    
-        const saveSesion= req.session
-        console.log(saveSesion);
-        
-       res.status(200).json({ status: "success", payload:{saveSesion} });
+
+        if(!req.session.user ) return res.status(404).json({ status: "Error", payload:" The user isn't logged." });
+        if(!req.session.user.role ) return res.status(403).json({ status: "Error", payload:" The user isn't aturized on this area." });
+            
+       res.status(200).json({ status: "success", payload: req.session.user});
     } catch (error) {  
-        res.status(500).json({status:"error",msg:"Internal server error"});
+        res.status(500).json({status:"Error",msg:"Internal server error."});
     }
 })
-router.get("/logout",async (req,res) => {
+
+router.delete("/logout",async (req,res) => {
     try {
-       req.session.destroy();
+        req.session.destroy();
         console.log(req.session);
         
-       res.status(200).json({ status: "success", payload:" The current session is ended" });
+       res.status(200).json({ status: "success", payload:" The current session is ended." });
     } catch (error) {  
-        res.status(500).json({status:"error",msg:"Internal server error"});
+        res.status(500).json({status:"Error",msg:"Internal server error."});
     }
 })
 router.put("/restore-Password",async (req,res) => {
   try {
-    const {email,password}=req.body
+    const {email,password} = req.body
     const user = await userDao.getByEmail(email);
     await userDao.update(user._id,{password:createHash(password)})
       
-     res.status(200).json({ status: "success", payload:" The password is updated" });
+     res.status(200).json({ status: "success", payload:" The password is updated." });
   } catch (error) {  
-      res.status(500).json({status:"error",msg:"Internal server error"});
+      res.status(500).json({status:"Error",msg:"Internal server error."});
   }
+})
+
+router.get("/google",passport.authenticate("google",{
+        scope:["https://www.googleapis.com/auth/userinfo.email","https://www.googleapis.com/auth/userinfo.profile"],
+        session:false
+    }),async (req, res) => {
+    
+    return res.status(200).json({status:"success", session:req.user})
+
+})
+
+router.get("/current", passportCall("jwt"),authorization("admin"), async (req,res) => {
+        const token = req.cookies.token;
+
+        const validToken = verifyToken(token);
+        if(!validToken)return res.status(400).json({status:"Error",msg:"Not token."});
+        const user = await userDao.getByEmail(validToken.email);
+        
+        res.json({status:"success", user});  
+
 })
 
 

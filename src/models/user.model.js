@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema({
         type: String,
     },
     password: String,
+    role:{
+        type:String,
+        default: "user"
+    },
     account: { type: mongoose.Schema.Types.ObjectId, ref:"accounts"}
 });
 
