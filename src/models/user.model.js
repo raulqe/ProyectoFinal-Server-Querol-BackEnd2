@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
         type:String,
         default: "user"
     },
+    cart:{type: mongoose.Schema.Types.ObjectId, ref:"cart"},
     account: { type: mongoose.Schema.Types.ObjectId, ref:"accounts"}
 });
 

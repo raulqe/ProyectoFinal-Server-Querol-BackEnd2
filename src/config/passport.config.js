@@ -4,6 +4,7 @@ import google from "passport-google-oauth20";
 import jwt from "passport-jwt";
 import envsConfig from './envs.config.js';
 import { userDao } from "../dao/user.dao.js";
+import { cartDao } from "../dao/cart.dao.js";
 import { createHash,validatePassword } from "../utils/hash.password.js";
 import { cookieExtractor } from "../utils/cookiesExtract.js"
 
@@ -22,13 +23,18 @@ export const initializedPassport = ()=>{
           try {
             const {first_name,last_name,role} = req.body;
             const user = await userDao.getByEmail(username);
-            if(user) return done(null, false,{message: "The user already exists"})
+
+            if(user) return done(null, false,{message: "The user already exists."});
+            
+            const newCart= await cartDao.create();
+
             const newUser = {
                 first_name,
                 last_name,
                 email: username,
                 password:createHash(password),
-                role
+                role,
+                cart: newCart._id
             }
             const createUser=await userDao.create(newUser);
             done(null,createUser);
@@ -80,30 +86,31 @@ export const initializedPassport = ()=>{
     ));
 
     passport.use("jwt",new JwtEstrategy({jwtFromRequest:ExtractJWT.fromExtractors([cookieExtractor]),secretOrKey:envsConfig.TOKN_KEY},
-    async(jwt_payload,done)=>{
+    async ( jwt_payload, done ) => {
         try {
             const { email } = jwt_payload;
-            const user = await userDao.getByEmail(email)
+            const user = await userDao.getByEmail(email);
             done(null, user);
         } catch (error) {
             done(error);
         }
 
-    }))
+    }));
 
 
 
-    passport.serializeUser((user,done)=>{
+    passport.serializeUser(( user, done ) => {
         done(null, user._id);
     });
-    passport.deserializeUser(async (id,done)=>{
+
+    passport.deserializeUser(async (id,done) => {
        try {
         const user = await userDao.getById(id);
         done(null,user);
        } catch (error) {
         done(error);
        }
-    })
+    });
 
    
-}
+};

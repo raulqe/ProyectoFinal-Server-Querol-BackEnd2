@@ -11,7 +11,7 @@ router.post('/', async(req,res) => {
     } catch (error) {
         res.status(500).json({status:"Error",msg:"Internal server error"})
     }
-})
+});
 
 router.get('/:cid', async(req,res) => {
     try {
@@ -21,6 +21,6 @@ router.get('/:cid', async(req,res) => {
     } catch (error) {
         res.status(404).json({status:"erro",msg:"Internal server error"})
     }
-})
+});
 
 export default router;

@@ -26,13 +26,13 @@ router.post("/login",passportCall("login"), async (req, res) => {
 
         const token= createToken(req.user);
         res.cookie("token", token,{ httpOnly:true });
-        res.status(200).json({ status: "success", payload: req.user, token })
+        res.status(200).json({ status: "success", payload: req.user, token });
       
     } catch (error) {
         console.log(error);
         res.status(500).json({ status: "Error", msg: "Internal server error." });
     }
-  })
+})
 
 
 router.get("/profile",async (req,res) => {
@@ -42,6 +42,7 @@ router.get("/profile",async (req,res) => {
         if(!req.session.user.role ) return res.status(403).json({ status: "Error", payload:" The user isn't aturized on this area." });
             
        res.status(200).json({ status: "success", payload: req.session.user});
+
     } catch (error) {  
         res.status(500).json({status:"Error",msg:"Internal server error."});
     }
@@ -50,23 +51,23 @@ router.get("/profile",async (req,res) => {
 router.delete("/logout",async (req,res) => {
     try {
         req.session.destroy();
-        console.log(req.session);
         
        res.status(200).json({ status: "success", payload:" The current session is ended." });
     } catch (error) {  
         res.status(500).json({status:"Error",msg:"Internal server error."});
     }
 })
+
 router.put("/restore-Password",async (req,res) => {
-  try {
-    const {email,password} = req.body
-    const user = await userDao.getByEmail(email);
-    await userDao.update(user._id,{password:createHash(password)})
-      
-     res.status(200).json({ status: "success", payload:" The password is updated." });
-  } catch (error) {  
-      res.status(500).json({status:"Error",msg:"Internal server error."});
-  }
+    try {
+        const {email,password} = req.body;
+        const user = await userDao.getByEmail(email);
+        await userDao.update(user._id,{password:createHash(password)});
+        
+        res.status(200).json({ status: "success", payload:" The password is updated." });
+    } catch (error) {  
+        res.status(500).json({status:"Error",msg:"Internal server error."});
+    }
 })
 
 router.get("/google",passport.authenticate("google",{
@@ -74,18 +75,19 @@ router.get("/google",passport.authenticate("google",{
         session:false
     }),async (req, res) => {
     
-    return res.status(200).json({status:"success", session:req.user})
+    return res.status(200).json({status:"success", session:req.user});
 
 })
 
 router.get("/current", passportCall("jwt"),authorization("admin"), async (req,res) => {
-        const token = req.cookies.token;
 
-        const validToken = verifyToken(token);
-        if(!validToken)return res.status(400).json({status:"Error",msg:"Not token."});
-        const user = await userDao.getByEmail(validToken.email);
-        
-        res.json({status:"success", user});  
+    const token = req.cookies.token;
+
+    const validToken = verifyToken(token);
+    if(!validToken)return res.status(400).json({status:"Error",msg:"Not token."});
+    const user = await userDao.getByEmail(validToken.email);
+    
+    res.json({status:"success", user});  
 
 })
 

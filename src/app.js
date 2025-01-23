@@ -34,12 +34,12 @@ app.use(
     })
 );
 
-initializedPassport()
-app.use(cookieParser())
+initializedPassport();
 
+app.use(cookieParser());
 app.use("/api",router);
 
 app.listen(envsConfig.PORT,()=>{
  console.log(`Server is listen on port ${envsConfig.PORT}`);
  
-})
+});
