@@ -16,7 +16,7 @@ const router= Router();
 
     router.delete("/logout",passportCall("jwt"),sessionsControllers.deleteSession);
 
-    router.put("/restore-Password",sessionsControllers.restorePassword);
+    router.put("/restore-Password",passportCall("jwt"),sessionsControllers.restorePassword);
 
     router.get("/google",passport.authenticate("google",{
             scope:["https://www.googleapis.com/auth/userinfo.email","https://www.googleapis.com/auth/userinfo.profile"],

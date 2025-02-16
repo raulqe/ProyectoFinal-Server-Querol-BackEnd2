@@ -2,6 +2,7 @@ import { userServices } from "../services/user.services.js";
 import { createHash } from "../utils/hash.password.js";
 import { createToken } from "../utils/jwt.js";
 import { UserDTO } from "../dao/dto/user.dto.js";
+import { userDao } from "../dao/mongo/user.dao.js";
 
 export class SessionsControllers {
 
@@ -51,11 +52,10 @@ export class SessionsControllers {
     async restorePassword (req,res) {
         try {
             const {email,password} = req.body;
-            const user = await userServices.getByEmail(email);
-            await userServices.update(user._id,{password:createHash(password)});
-            console.log(user.id);
+            const user = await userDao.getByEmail(email);
+            await userDao.update(user._id,{password:createHash(password)});
             
-            res.status(200).json({ status: "success", payload:" The password is updated." });
+             res.status(200).json({ status: "success", payload:" The password is updated." });
         } catch (error) {  
             res.status(500).json({status:"Error",msg:"Internal server error."});
         };

@@ -1,4 +1,5 @@
-import mongoose,{Types} from "mongoose";
+import mongoose from "mongoose";
+import { Types } from "mongoose";
 
 const userCollection= "users";
 

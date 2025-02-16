@@ -20,10 +20,10 @@ export class UserServices {
         return user;
     };
 
-    async update(id, data) {
+    async update(id, data) { 
         const userUpdate = await userDao.findByIdAndUpdate(id, data);
         return userUpdate;
-    }
+    };
 
     async deleteOne(id) {
         const user = await userDao.findByIdAndUpdate(id);
