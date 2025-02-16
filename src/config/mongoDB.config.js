@@ -1,13 +1,17 @@
 import mongoose from 'mongoose';
-import envsConfig from './envs.config.js';
+import envsConfig from "./envs.config.js";
 
-export const connectDB = () => {
-    try {
-        mongoose.connect(envsConfig.MONGO_URL);
-        console.log("Mongo DB is connected Propperly");
-        
-    } catch (error) {
-        console.log(` Error: ${error} `);
-        
+ export class ConnectDB {
+    static #instance;
+    static getConnection(){
+        (!ConnectDB.#instance) ?
+            (
+                ( mongoose.connect(envsConfig.MONGO_URL) ),
+                ( ConnectDB.#instance = mongoose.Connection ),
+                ( console.log("Mongo DB is connected Propperly") )
+            )
+        : console.log("Mongo DB is already connected");
+
+        return ConnectDB.#instance;
     }
 }

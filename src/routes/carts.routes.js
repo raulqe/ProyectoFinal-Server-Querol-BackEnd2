@@ -1,26 +1,22 @@
 import { Router } from "express";
-import { cartDao } from "../dao/cart.dao.js";
+import { cartsControllers } from "../controllers/carts.controller.js";
+import { passportCall } from "../middlewares/passportCall.middelware.js";
+import { authorization } from "../middlewares/authotirization.middleware.js";
 
 const router=Router()
 
-router.post('/', async(req,res) => {
-    try {
-        const cart = await cartDao.create();
+    router.post('/',cartsControllers.createCart);
 
-        res.status(201).json({ status: "success", cart });
-    } catch (error) {
-        res.status(500).json({status:"Error",msg:"Internal server error"})
-    }
-});
+    router.get('/:cid',cartsControllers.getByIdCart);
 
-router.get('/:cid', async(req,res) => {
-    try {
-        const { cid } = req.params;
-        const cart = await cartDao.getById(cid);
-        if (!cart) return res.status(404).json({ status: "Error", msg: "Carrito no encontrado" });
-    } catch (error) {
-        res.status(404).json({status:"erro",msg:"Internal server error"})
-    }
-});
+    router.post("/:cid/product/:pid", passportCall("jwt"),authorization("user"),cartsControllers.addProductToCart);
+    
+    router.delete("/:cid/product/:pid", passportCall("jwt"),authorization("user"),cartsControllers.deleteProductToCart);
+    
+    router.put("/:cid/product/:pid", passportCall("jwt"),authorization("user"),cartsControllers.updateQuantityProductInCart);
+    
+    router.delete("/:cid", passportCall("jwt"),authorization("user"), cartsControllers.clearProductsToCart);
+
+    router. post("/:cid/purchase",passportCall("jwt"),authorization("user"),cartsControllers.purchaseCart)
 
 export default router;

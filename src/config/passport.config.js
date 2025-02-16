@@ -3,8 +3,8 @@ import local from "passport-local";
 import google from "passport-google-oauth20";
 import jwt from "passport-jwt";
 import envsConfig from './envs.config.js';
-import { userDao } from "../dao/user.dao.js";
-import { cartDao } from "../dao/cart.dao.js";
+import { userDao } from "../dao/mongo/user.dao.js";
+import { cartDao } from "../dao/mongo/cart.dao.js";
 import { createHash,validatePassword } from "../utils/hash.password.js";
 import { cookieExtractor } from "../utils/cookiesExtract.js"
 
@@ -110,7 +110,5 @@ export const initializedPassport = ()=>{
        } catch (error) {
         done(error);
        }
-    });
-
-   
+    }); 
 };
